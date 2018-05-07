@@ -3,6 +3,7 @@ import os
 from encrypt import rot13
 from Data import join,data
 import csv
+from getpass import getpass as gp
 
 net_balance = 0.0  #Counter for user amount
 
@@ -69,13 +70,18 @@ def atm(user_name,Net_balance,Pin,History,acc_no):
 
         elif int(Opr) == 5:
             os.system(clear)
-            if net_balance < 0:
+            if net_balance < 0.0:
                 print (":: Amount Can Not Be Transferred! ::\n:: Your Acount Balance = Rs",balance,"::","\n")
 
             else:
                 account_no = input('Enter 12-Digit Account Number : ')
-                amount = amount_transfer(account_no, net_balance)
-                net_balance -= float(amount)
+                if (account_no == acc_no):
+                    os.system(clear)
+                    print(":: Amount Transfer Not Possible! ::")
+                    print(":: Provided Account Number Is Yours! ::\n")
+                else:
+                    amount = amount_transfer(account_no, net_balance, acc_no)
+                    net_balance -= float(amount)
 
         elif int(Opr) == 6:
             os.system(clear)
@@ -87,7 +93,7 @@ def atm(user_name,Net_balance,Pin,History,acc_no):
 
         else:
             os.system(clear)
-            print (":: Wrong Option! ::")
+            print (":: Invalid Selection! ::")
 
         #Incase above condition(s) get meet
         #Loop continues untill '0' is entered
@@ -117,7 +123,7 @@ def deposit(Net_balance):
         deposit_amount = input("Enter Amount In Rupees: ")
 
         #Check for negetive values
-        if float(deposit_amount) >= 0:
+        if float(deposit_amount) >= 0.0:
             #check for extra large amount
             #limits amount towards power of e
             if (len(deposit_amount) > 14) or ((len(str(float(deposit_amount)+net_balance))) > 14):
@@ -132,7 +138,7 @@ def deposit(Net_balance):
                 print(":: You Have Successfully Depositted An Amount Of Rs",deposit_amount,"::",'\n')
                 return
 
-        elif float(deposit_amount) < 0:
+        elif float(deposit_amount) < 0.0:
             os.system(clear)
             #If user inputs negetive amount
             print (":: Please Enter Right Amount! ::\n")
@@ -164,7 +170,7 @@ def withdraw(Net_balance):
             os.system(clear)
 
             #If user inputs negetive amount
-            if float(with_draw) < 0:
+            if float(with_draw) < 0.0:
                 os.system(clear)
                 print (":: Please Enter Right Amount! ::\n")
                 return withdraw(net_balance)
@@ -192,13 +198,13 @@ def change_pin(Pin):
     print(":: Create Your Own Pin....::")
     while pin_count != 3:
         print(":: Entries left :",(3-pin_count),"::")
-        pin = str(input ("Enter 4-Digit Pin : "))
+        pin = str(gp ("Enter 4-Digit Pin : "))
         os.system(clear)
 
         if (len(pin) == 4) and (pin.isdigit() == True):
             if not pin == Pin:
                 os.system(clear)
-                confirm_pin = str(input ("Confirm Pin : "))
+                confirm_pin = str(gp ("Confirm Pin : "))
 
                 if pin == confirm_pin:
                     Pin = pin
@@ -226,35 +232,36 @@ def change_pin(Pin):
             print(":: Invalid Pin! ::\n")
     return(Pin)
 
-def amount_transfer(account_no, balance):
+def amount_transfer(account_no, balance, acc_no):
+    import time,datetime
     clear = ('cls' if os.name == 'nt' else 'clear')
     os.system(clear)
 
     d = data()
     filename = join()
-    amount = 0
+    amount = 0.0
 
     print (":: Amount Transfer ::")
     Inactive_account = str('#'+account_no)
 
     if Inactive_account in d.keys():
         os.system(clear)
-        print ("Provided Account Number Is Not Active!")
+        print (":: Provided Account Number Is Not Active! ::")
         return amount
 
     elif account_no in d.keys():
         try:
             amount = input("Enter Amount In Rupees: ")
 
-            if float(amount) < 0:
+            if float(amount) < 0.0 or ('-' in amount):
                 os.system(clear)
                 print (":: Please Enter Right Amount! ::\n")
-                return amount_transfer(account_no, balance)
+                return amount_transfer(account_no, balance, acc_no)
 
             elif float(amount) > float(balance):
                 os.system(clear)
                 print (":: Amount Can Not Be Transferred! ::\n:: Your Acount Balance = Rs",balance,"::","\n")
-                return amount_transfer(account_no, balance)
+                return amount_transfer(account_no, balance, acc_no)
 
             else:
                 os.system(clear)
@@ -269,26 +276,27 @@ def amount_transfer(account_no, balance):
                             #rot13() function is called for encoding
                             enc = rot13(d[account_no][0])
                             balance = str(float(d[account_no][2]) + float(amount))
-                            re_new = [account_no,enc,d[account_no][1],balance,d[account_no][3]]
+                            Message = str("Amount of 'Rs "+str(amount)+"' was received on "+str(time.strftime('%d-%b-%Y at %I:%M %p'))+", through Account Number: "+str(acc_no))
+                            re_new = [account_no,enc,d[account_no][1],balance,d[account_no][3],Message]
                             w = csv.writer(ap)
                             w.writerow(re_new)
                             ap.close()
 
                         os.system(clear)
-                        print("Amount Transferred Successfully!")
+                        print(":: Amount Transferred Successfully! ::")
                         return amount
                 else:
                     amount = 0
                     os.system(clear)
-                    print("Amount Transfer Unsuccessful!")
+                    print(":: Amount Transfer Unsuccessful! ::")
                     return amount
 
         except ValueError as err:
             os.system(clear)
             print("Error :",err)
             print(":: Please Enter Right Amount! ::\n")
-            return amount_transfer(account_no, balance)
+            return amount_transfer(account_no, balance, acc_no)
     else:
         os.system(clear)
-        print ("No Match Found!")
+        print (":: No Match Found! ::")
         return amount

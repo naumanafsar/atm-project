@@ -8,6 +8,7 @@ import os
 import sys
 import csv
 import random as rd
+from getpass import getpass as gp
 
 
 # Using input() in python 2 or 3
@@ -72,7 +73,7 @@ def login(d):
     if (d == None):
         os.system(clear)
         print ("Please create an account first!")
-        return login_user()
+        return new_account()
 
     for a in user_name:
         if ((ord(a) >= 65) and (ord(a) <= 90)) or ((ord(a) >= 97) and (ord(a) <= 122)) or (ord(a) == 32):
@@ -108,13 +109,21 @@ def login(d):
         user_name_l = user_name.lower()
         while int(entry) != 3:
             print("Entries left :",(3-entry))
-            pin = str(input("Enter 4-Digit Pin : "))
+            pin = str(gp("Enter 4-Digit Pin : "))
 
             if pin == d[acc_no][1]:
                 Pin = pin
                 Net_balance = d[acc_no][2]
                 History = d[acc_no][3]
+                Message = d[acc_no][4]
                 os.system(clear)
+
+                # Shows message at the top if there is any!
+                if (Message == "None"):
+                    (None)
+                else:
+                    print ("Message: ",Message)
+
                 return atm(user_name,Net_balance,Pin,History,acc_no)
 
             else:
@@ -190,12 +199,12 @@ def new_account():
         print("Create Your Own Pin....")
         while pin_count != 3:
             print("Entries left :",(3-pin_count))
-            pin = str(input ("Enter 4-Digit Pin : "))
+            pin = str(gp ("Enter 4-Digit Pin : "))
             os.system(clear)
 
             if (len(pin) == 4) and (pin.isdigit() == True):
                 os.system(clear)
-                confirm_pin = str(input ("Confirm Pin : "))
+                confirm_pin = str(gp ("Confirm Pin : "))
 
                 if pin == confirm_pin:
                     os.system(clear)
@@ -259,7 +268,7 @@ def activate_account():
 
         if ch_acc_no in d.keys():
             d[user_acc_no] = d.pop(ch_acc_no)
-            print ("Activate Account Neme :",d[user_acc_no][0])
+            print ("Activate Account Name :",d[user_acc_no][0])
             confirm = input("Please Confirm \n1. Yes \n2. No \n")
 
             if (confirm == '1') or (confirm.lower().startswith('y')):
@@ -304,7 +313,7 @@ def de_active_account():
     acc_no = input("Account De-activate\nEnter Account Number : ")
 
     if acc_no in d.keys():
-        acc_pin = str(input("Enter 4-Digit Pin : "))
+        acc_pin = str(gp("Enter 4-Digit Pin : "))
 
         if acc_pin == d[acc_no][1]:
             os.system(clear)
@@ -345,6 +354,11 @@ def de_active_account():
             print ("Pin Did Not Match!")
             return login_user()
 
+    elif ("#"+acc_no) in d.keys():
+        os.system(clear)
+        print("Account Is Already De-Active!")
+        return login_user()
+
     else:
         os.system(clear)
         print ("No match found!")
@@ -354,13 +368,13 @@ def admin_block(acc_no):
     clear = ('cls' if os.name == 'nt' else 'clear')
     d = data()
 
-    pin = str(input("Enter 4-Digit Pin : "))
+    pin = str(gp("Enter 4-Digit Pin : "))
     if pin == d[acc_no][1]:
         del d[acc_no]
         os.system(clear)
         print (time.strftime('Date:%d-%b-%Y \nTime:%I:%M %p  Today:%A\n'))
         print ("::: Welcome to YOB Admin Block! :::\n\n:: Select Option Provided Below ::")
-        ad = input("1. Number Of Users \n2. Active User Names \n3. Active Users Info. \n4. Users Acivity \n5. De-Activate Account\n0. Exit\n")
+        ad = input("1. Number Of Users \n2. Active User Names \n3. Active Users Info. \n4. Users Acivity \n5. Find Account \n6. De-Activate Account\n0. Exit\n")
         while ad != '0':
 
             if ad == '1':
@@ -404,9 +418,29 @@ def admin_block(acc_no):
 
             elif ad == '5':
                 os.system(clear)
+                acc_no_find = str(input('Enter 12-Digit Account Number : '))
+
+                if acc_no_find in d.keys():
+                    print("Account Status : Active")
+                    print("Name :",d[acc_no_find][0])
+                    print("Pin :",d[acc_no_find][1])
+                    print("Amount :","{:,}\n".format(d[acc_no_find][2]))
+
+                elif ("#"+acc_no_find) in d.keys():
+                    print("Account Status : Inactive")
+                    print("Name :",d[("#"+acc_no_find)][0])
+                    print("Pin :",d[("#"+acc_no_find)][1])
+                    print("Amount :","{:,}\n".format(d[("#"+acc_no_find)][2]))
+
+                else:
+                    os.system(clear)
+                    print("Account Not Found!")
+
+            elif ad == '6':
+                os.system(clear)
                 return de_active_account()
 
-            ad = input("1. Number Of Users \n2. Active User Names \n3. Active Users Info. \n4. Users Acivity \n5. De-Activate Account\n0. Exit\n")
+            ad = input("1. Number Of Users \n2. Active User Names \n3. Active Users Info. \n4. Users Acivity \n5. Find Account \n6. De-Activate Account\n0. Exit\n")
         os.system(clear)
         return login_user()
 
